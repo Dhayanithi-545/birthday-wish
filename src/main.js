@@ -9,7 +9,7 @@ import { C } from './captions.js'
 import { sea, DUSK, DAWN } from './sea.js'
 import { track } from './track.js'
 gsap.registerPlugin(ScrollTrigger)
-const U = import.meta.glob('./assets/**/*.{webp,svg,mp3,mp4}', { eager: true, query: '?url', import: 'default' })
+const U = import.meta.glob('./assets/**/*.{webp,png,svg,mp3,mp4}', { eager: true, query: '?url', import: 'default' })
 const A = p => U['./assets/' + p]
 const $ = s => document.querySelector(s)
 const low = (navigator.hardwareConcurrency || 8) <= 4
@@ -56,8 +56,33 @@ $('#app').innerHTML = `
  <button class="dive blow" id="blow">${f.btnHold}</button><button class="mic" id="mic">${f.btnMic}</button>
  <button class="bottle" id="bottle" aria-label="note"><img src="${A('svg/props/message_bottle.svg')}" alt=""><span>${f.bottleHint}</span></button>
  <img class="wave w2" src="${A('scenery/wave_mid.webp')}" alt=""><img class="wave w3" src="${A('scenery/wave_front.webp')}" alt=""></section>
-<section class="end" id="end"><p>${e.l1}</p><p class="e2">${e.l2}</p><img class="gift" src="${A('svg/props/gift_box.svg')}" alt=""></section>
-<canvas id="fx"></canvas><div class="modal" id="modal"><div class="paper">${C.note.lines.map(t => `<p>${t}</p>`).join('')}<p class="sign">${C.note.sign}</p><button id="close">close</button></div></div>
+<section class="end" id="end">
+ <div class="end-ask" id="endAsk">
+  <div class="meet-q">Can we meet today, please</div>
+  <div class="meet-btns">
+   <a class="meet-yes" id="meetYes" href="https://wa.me/919363986685?text=innaikku%20meet%20pannalam" target="_blank" rel="noopener">Yes</a>
+   <button class="meet-no" id="meetNo" type="button">No</button>
+  </div>
+  <div class="meet-plea" id="meetPlea">please meet panlamehhh... :(</div>
+ </div>
+ <div class="end-unlocked" id="endUnlocked" hidden>
+  <p>${e.l1}</p>
+  <div class="collage"><img src="${A('collage-frame.png')}" alt="Memories collage" loading="lazy" decoding="async"></div>
+  <p class="e2">${e.l2}</p>
+  <img class="gift" src="${A('svg/props/gift_box.svg')}" alt="">
+ </div>
+</section>
+<canvas id="fx"></canvas><div class="modal" id="modal"><div class="paper">
+ <div class="lockbox" id="lockBox">
+  <p class="lockhint">chumma unakku bday wish dhan pannirukan perusa onnu irukathunu nenaikiren</p>
+  <p class="lockask">code ketu enter pannu</p>
+  <div class="codegrid" id="codeGrid">${Array.from({ length: 10 }, (_, i) => `<input class="codebox" type="text" maxlength="1" inputmode="text" autocomplete="off" autocapitalize="none" spellcheck="false" aria-label="code character ${i + 1}">`).join('')}</div>
+  <p class="codeerr" id="codeErr"></p>
+  <button class="unlockbtn" id="unlockBtn" type="button">Open note</button>
+  <button class="closebtn" id="closeLock" type="button">close</button>
+ </div>
+ <div class="notebody" id="noteBody" hidden>${C.note.lines.map(t => `<p>${t}</p>`).join('')}<p class="sign">${C.note.sign}</p><button class="closebtn" id="close" type="button">close</button></div>
+</div></div>
 <div class="note" id="note"></div>`
 
 // audio
@@ -163,10 +188,123 @@ addEventListener('contextmenu', e => { if (e.target.closest('#blow,.cake,button'
 $('#mic').onclick = async () => { try { const st = await navigator.mediaDevices.getUserMedia({ audio: true }), ac = new AudioContext(), an = ac.createAnalyser(); ac.createMediaStreamSource(st).connect(an)
   const d = new Uint8Array(an.fftSize); const chk = () => { an.getByteTimeDomainData(d); let m = 0; d.forEach(v => m = Math.max(m, Math.abs(v - 128))); if (m > 70) { st.getTracks().forEach(t => t.stop()); done('Mic') } else if (!blown) requestAnimationFrame(chk) }; chk()
   $('#mic').textContent = '...' } catch { $('#mic').textContent = f.btnHold } }
-// bottle note
-$('#bottle').onclick = () => { $('#modal').classList.add('on'); track.bottle() }; $('#close').onclick = () => $('#modal').classList.remove('on')
-gsap.from('.gift', { y: 160, opacity: 0, duration: 3, scrollTrigger: { trigger: '#end', start: 'top 50%' } })
-gsap.utils.toArray('.end p').forEach(el => gsap.from(el, { opacity: 0, y: 20, duration: 1.4, scrollTrigger: { trigger: el, start: 'top 85%' } }))
+// bottle note + passcode gate + final section state
+const PASSCODE = 'devols-545'
+let unlocked = (() => { try { return sessionStorage.getItem('bw_note_unlocked') === '1' } catch { return false } })()
+const boxes = [...document.querySelectorAll('.codebox')]
+const applyUnlockState = () => {
+  $('#lockBox').hidden = unlocked
+  $('#noteBody').hidden = !unlocked
+  $('#endAsk').hidden = unlocked
+  $('#endUnlocked').hidden = !unlocked
+  if (unlocked) ScrollTrigger.refresh()
+}
+applyUnlockState()
+if (unlocked) track.unlock(true)
+
+const tryUnlock = () => {
+  const code = boxes.map(b => b.value).join('').toLowerCase()
+  if (code === PASSCODE) {
+    unlocked = true
+    try { sessionStorage.setItem('bw_note_unlocked', '1') } catch {}
+    track.unlock()
+    applyUnlockState()
+    chime.play().catch(() => {})
+    confetti({ particleCount: low ? 30 : 55, spread: 80, origin: { y: 0.55 }, zIndex: 70, colors: ['#efc474', '#ec9a78', '#9ccfc4', '#ffb7c5', '#f6efe0'], disableForReducedMotion: true })
+    return
+  }
+  track.wrongCode()
+  $('#codeErr').textContent = 'wrong code... ketu enter pannu 😅'
+  const grid = $('#codeGrid')
+  grid.classList.remove('err'); void grid.offsetWidth; grid.classList.add('err')
+  navigator.vibrate?.([30, 40, 30])
+}
+
+boxes.forEach((box, idx) => {
+  box.oninput = () => {
+    const val = box.value.slice(-1)
+    box.value = val
+    box.classList.toggle('filled', !!val)
+    $('#codeErr').textContent = ''
+    if (val && idx < boxes.length - 1) boxes[idx + 1].focus()
+    if (boxes.every(b => b.value.length === 1)) tryUnlock()
+  }
+  box.onkeydown = ev => {
+    if (ev.key === 'Backspace' && !box.value && idx > 0) {
+      boxes[idx - 1].value = ''
+      boxes[idx - 1].classList.remove('filled')
+      boxes[idx - 1].focus()
+    } else if (ev.key === 'ArrowLeft' && idx > 0) {
+      boxes[idx - 1].focus()
+    } else if (ev.key === 'ArrowRight' && idx < boxes.length - 1) {
+      boxes[idx + 1].focus()
+    } else if (ev.key === 'Enter') {
+      tryUnlock()
+    }
+  }
+  box.onpaste = ev => {
+    ev.preventDefault()
+    const pasted = (ev.clipboardData?.getData('text') || '').trim().slice(0, boxes.length)
+    if (!pasted) return
+    const start = pasted.length === boxes.length ? 0 : idx
+    ;[...pasted].forEach((ch, offset) => {
+      const target = boxes[start + offset]
+      if (target) { target.value = ch; target.classList.add('filled') }
+    })
+    boxes[Math.min(boxes.length - 1, start + pasted.length - 1)].focus()
+    if (boxes.every(b => b.value.length === 1)) tryUnlock()
+  }
+})
+
+$('#unlockBtn').onclick = tryUnlock
+$('#bottle').onclick = () => {
+  $('#modal').classList.add('on')
+  track.bottle()
+  if (!unlocked) setTimeout(() => (boxes.find(b => !b.value) || boxes[0])?.focus(), 120)
+}
+$('#close').onclick = $('#closeLock').onclick = () => $('#modal').classList.remove('on')
+
+// meet today? (before code is entered)
+$('#meetYes').onclick = () => {
+  track.meet('Yes → WhatsApp')
+  const rect = $('#meetYes').getBoundingClientRect()
+  confetti({
+    particleCount: low ? 25 : 45,
+    spread: 90,
+    origin: { x: (rect.left + rect.width / 2) / innerWidth, y: (rect.top + rect.height / 2) / innerHeight },
+    colors: ['#efc474', '#ec9a78', '#9ccfc4', '#ffb7c5', '#f6efe0'],
+    disableForReducedMotion: true
+  })
+}
+$('#meetNo').onclick = () => {
+  const noBtn = $('#meetNo')
+  if (noBtn.classList.contains('blast')) return
+  track.meet('No (Blasted!)')
+  const rect = noBtn.getBoundingClientRect()
+  const origin = { x: (rect.left + rect.width / 2) / innerWidth, y: (rect.top + rect.height / 2) / innerHeight }
+  confetti({
+    particleCount: low ? 28 : 48,
+    spread: 360,
+    startVelocity: 28,
+    gravity: 0.7,
+    ticks: 110,
+    scalar: 1.1,
+    origin,
+    colors: ['#d9694f', '#efc474', '#ec9a78', '#555555', '#f6efe0'],
+    disableForReducedMotion: true
+  })
+  pops[0].cloneNode().play().catch(() => {})
+  navigator.vibrate?.([40, 30, 60])
+  noBtn.classList.add('blast')
+  setTimeout(() => {
+    noBtn.style.display = 'none'
+    $('#meetPlea').classList.add('on')
+    $('#meetYes').classList.add('nudge')
+  }, 480)
+}
+
+gsap.from('.gift', { y: 120, opacity: 0, duration: 2.2, scrollTrigger: { trigger: '#endUnlocked', start: 'top 65%' } })
+gsap.utils.toArray('.end-unlocked p').forEach(el => gsap.from(el, { opacity: 0, y: 20, duration: 1.4, scrollTrigger: { trigger: el, start: 'top 85%' } }))
 
 // real sea in the hero (dusk) and at the end (dawn)
 const still = matchMedia('(prefers-reduced-motion: reduce)').matches

@@ -76,12 +76,42 @@ section h2{font:400 36px Fraunces,serif;text-align:center}.sub{text-align:center
 .blow{top:112svh;bottom:auto;position:absolute}.mic{position:absolute;top:124svh;left:50%;transform:translateX(-50%);background:none;border:0;color:var(--ink);font:700 20px Caveat;text-decoration:underline}
 .bottle{position:absolute;left:50%;top:100svh;width:110px;transform:translate(-50%,200px);opacity:0;background:none;border:0;pointer-events:none;transition:all 2.5s;color:var(--ink);font:700 18px Caveat}
 .bottle.up{transform:translate(-50%,0);opacity:1;pointer-events:auto}.bottle img{width:100%}
-.end{min-height:110svh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;text-align:center;padding:0 24px}
-.end p{font:italic 30px/1.2 Fraunces,serif}.end .e2{font:700 26px Caveat}.gift{width:110px;margin-top:40px}
+.end{min-height:110svh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center;padding:40px 24px 70px}
+.end p{font:italic 30px/1.2 Fraunces,serif}.end .e2{font:700 26px Caveat}.gift{width:110px;margin-top:24px}
+.end-ask,.end-unlocked{display:flex;flex-direction:column;align-items:center;gap:16px;width:100%}
+.end-ask[hidden],.end-unlocked[hidden],.lockbox[hidden],.notebody[hidden]{display:none}
+.meet-q{font:italic clamp(28px,8vw,36px)/1.25 Fraunces,serif;color:var(--paper)}
+.meet-btns{display:flex;gap:16px;justify-content:center;align-items:center;flex-wrap:wrap;margin-top:6px}
+.meet-yes,.meet-no{border:0;border-radius:4px;padding:12px 30px;font:400 20px Fraunces,serif;cursor:pointer;text-decoration:none;display:inline-block;transition:transform .2s,box-shadow .2s}
+.meet-yes{background:var(--paper);color:var(--ink);box-shadow:0 4px 0 #b7a98a}
+.meet-yes:active{transform:translateY(3px);box-shadow:0 1px 0 #b7a98a}
+.meet-yes.nudge{animation:nudgeYes 1.3s ease-in-out infinite}
+@keyframes nudgeYes{0%,100%{transform:scale(1)}50%{transform:scale(1.09);box-shadow:0 4px 18px #efc474aa}}
+.meet-no{background:var(--coral);color:#fff;box-shadow:0 4px 0 #9e412c}
+.meet-no:active{transform:translateY(3px);box-shadow:0 1px 0 #9e412c}
+.meet-no.blast{pointer-events:none;animation:blastOut .55s ease-out forwards}
+@keyframes blastOut{0%{transform:scale(1) rotate(0)}25%{transform:scale(1.22) rotate(-8deg);filter:brightness(1.6)}55%{transform:scale(1.35) rotate(10deg);opacity:.8}100%{transform:scale(0.1) rotate(25deg);opacity:0}}
+.meet-plea{font:700 clamp(24px,6.5vw,30px)/1.3 Caveat;color:var(--gold);opacity:0;transform:translateY(10px) scale(.92);transition:opacity .45s,transform .45s}
+.meet-plea.on{opacity:1;transform:translateY(0) scale(1)}
+.collage{width:min(340px,86vw);margin:10px auto;padding:10px;background:var(--paper);border-radius:3px;box-shadow:0 10px 28px #0007;transform:rotate(-1.5deg)}
+.collage img{width:100%;height:auto;border-radius:2px}
 #fx{position:fixed;inset:0;pointer-events:none;z-index:48}
 .modal{position:fixed;inset:0;z-index:60;background:#000a;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:.4s}.modal.on{opacity:1;pointer-events:auto}
-.paper{width:min(320px,86vw);padding:34px 28px;background:var(--paper);border-radius:3px;box-shadow:0 8px 24px #0008;color:var(--ink);font:700 22px/1.25 Caveat;text-align:center}
-.paper p{margin-bottom:10px}.paper .sign{text-align:right}.paper button{border:0;background:none;font:700 18px Caveat;text-decoration:underline;color:var(--ink)}
+.paper{width:min(360px,92vw);padding:30px 22px;background:var(--paper);border-radius:3px;box-shadow:0 8px 24px #0008;color:var(--ink);font:700 22px/1.25 Caveat;text-align:center}
+.paper p{margin-bottom:10px}.paper .sign{text-align:right}.paper .closebtn{border:0;background:none;font:700 18px Caveat;text-decoration:underline;color:var(--ink);cursor:pointer;margin-top:6px}
+.lockbox{display:flex;flex-direction:column;align-items:center;gap:12px;text-align:center}
+.lockbox .lockhint{font:700 21px/1.3 Caveat;margin:0}
+.lockbox .lockask{font:italic 19px/1.2 Fraunces,serif;color:#7a3e2e;margin:0}
+.codegrid{display:grid;grid-template-columns:repeat(10,minmax(0,1fr));gap:4px;width:100%;margin:6px 0}
+.codebox{width:100%;height:38px;padding:0;border:1.5px solid #bfa980;border-radius:5px;background:#fffdf7;text-align:center;font:700 16px/1 'DM Sans',monospace;color:var(--ink);text-transform:lowercase;transition:border-color .2s,transform .15s,background .2s}
+.codebox:focus{outline:none;border-color:#2b8a90;box-shadow:0 0 0 2px #2b8a9033;transform:translateY(-2px)}
+.codebox.filled{border-color:#2b8a90;background:#eef8f6}
+.codegrid.err{animation:shake .38s ease-in-out}
+.codegrid.err .codebox{border-color:#c94a38;background:#fff0ed}
+@keyframes shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}
+.codeerr{min-height:20px;font:700 17px Caveat;color:#c94a38;margin:0}
+.unlockbtn{border:0;border-radius:4px;background:var(--ink);color:var(--paper);padding:10px 26px;font:400 18px Fraunces,serif;cursor:pointer;box-shadow:0 3px 0 #051319}
+.unlockbtn:active{transform:translateY(2px);box-shadow:0 1px 0 #051319}
 
 /* motion */
 @keyframes bobY{50%{translate:0 -10px}}@keyframes swayR{0%,100%{rotate:-3deg}50%{rotate:3deg}}@keyframes swayP{0%,100%{rotate:-1.3deg}50%{rotate:1.3deg}}
@@ -137,6 +167,7 @@ button{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-web
 @keyframes rise{0%{translate:0 0;opacity:0}8%{opacity:1}25%{translate:14px -30svh}50%{translate:-12px -60svh}75%{translate:12px -90svh}92%{opacity:1}100%{translate:0 -120svh;opacity:0}}
 .bub.pop{animation:none;scale:1.5;opacity:0}
 .paper{max-height:82svh;overflow:auto;font-size:19px;text-align:left;-webkit-overflow-scrolling:touch}.paper p{text-align:left;margin-bottom:14px}.paper .sign{text-align:right}
+.lockbox p,.lockbox .lockhint,.lockbox .lockask,.lockbox .codeerr{text-align:center;margin:0}
 
 /* ship floats: hull sinks into the water, soft reflection and a thin waterline */
 .shipw{position:absolute;left:5%;top:calc(var(--hy,64%) + 9px);width:72px;height:0;z-index:2;pointer-events:none}

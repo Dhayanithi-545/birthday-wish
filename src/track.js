@@ -88,7 +88,10 @@ const visitId = `${startedAt.toString(36)}-${Math.random().toString(36).slice(2,
 
 let bubbleCount = 0
 let candleMethod = ''
-let bottleRead = false
+let bottleOpened = false
+let wrongCodeCount = 0
+let codeUnlocked = false
+let meetChoice = ''
 let deepestIdx = -1
 let timer = null
 
@@ -105,10 +108,14 @@ const state = {
 }
 
 const updateEnding = () => {
-  if (candleMethod && bottleRead) state.endingStatus = `Blew candles (${candleMethod}) + Read letter`
-  else if (candleMethod) state.endingStatus = `Blew candles (${candleMethod})`
-  else if (bottleRead) state.endingStatus = 'Read bottle letter'
-  else state.endingStatus = 'Not yet'
+  const parts = []
+  if (candleMethod) parts.push(`Blew candles (${candleMethod})`)
+  if (codeUnlocked) parts.push('Unlocked note (devols-545)')
+  else if (bottleOpened) {
+    parts.push(wrongCodeCount > 0 ? `Bottle locked (${wrongCodeCount} wrong code)` : 'Opened bottle (Code locked)')
+  }
+  if (meetChoice) parts.push(`Meet: ${meetChoice}`)
+  state.endingStatus = parts.length ? parts.join(' · ') : 'Not yet'
 }
 
 const send = (useBeacon = false) => {
@@ -177,10 +184,27 @@ export const track = {
     send(false)
   },
   bottle() {
-    if (!bottleRead) {
-      bottleRead = true
+    if (!bottleOpened) {
+      bottleOpened = true
       updateEnding()
       send(false)
     }
+  },
+  wrongCode() {
+    wrongCodeCount += 1
+    updateEnding()
+    schedule()
+  },
+  unlock(silent = false) {
+    if (!codeUnlocked) {
+      codeUnlocked = true
+      updateEnding()
+      if (!silent) send(false)
+    }
+  },
+  meet(choice) {
+    meetChoice = meetChoice && !meetChoice.includes(choice) ? `${meetChoice} → ${choice}` : choice
+    updateEnding()
+    send(true)
   }
 }

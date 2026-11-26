@@ -1,5 +1,10 @@
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
+import { FallingLeaves } from 'falling-leaves'
+import confetti from 'canvas-confetti'
+import { Fireworks } from 'fireworks-js'
+import 'sakura-js/dist/sakura.min.css'
+import sakuraRaw from 'sakura-js/dist/sakura.js?raw'
 import { C } from './captions.js'
 import { sea, DUSK, DAWN } from './sea.js'
 import { track } from './track.js'
@@ -66,12 +71,38 @@ $('#dive').onclick = () => {
 
   window.scrollTo({ top: innerHeight, behavior: 'smooth' })
 }
-// bubbles
-let nt
+// bubbles: burst with non-maple leaves (ginkgo & petal) + mini-bubble sparkles at the bubble's exact position
+const ginkgoLeaf = confetti.shapeFromPath({ path: 'M12 22 L12 14 C6 12 2 7 4 3 C7 4 10 5 12 7 C14 5 17 4 20 3 C22 7 18 12 12 14 Z' })
+const petalLeaf = confetti.shapeFromPath({ path: 'M12 2 C17 6 19 13 12 21 C5 13 7 6 12 2 Z' })
 document.querySelectorAll('.bub').forEach(b => b.onclick = () => {
   track.bubble()
+  const rect = b.getBoundingClientRect()
+  const origin = { x: (rect.left + rect.width / 2) / innerWidth, y: (rect.top + rect.height / 2) / innerHeight }
+  confetti({
+    particleCount: low ? 18 : 28,
+    spread: 115,
+    startVelocity: 24,
+    gravity: 0.6,
+    ticks: 160,
+    scalar: 1.35,
+    origin,
+    shapes: [ginkgoLeaf, petalLeaf],
+    colors: ['#efc474', '#ec9a78', '#9ccfc4', '#f6efe0', '#ffb7c5'],
+    disableForReducedMotion: true
+  })
+  confetti({
+    particleCount: low ? 10 : 16,
+    spread: 360,
+    startVelocity: 16,
+    gravity: 0.35,
+    ticks: 80,
+    scalar: 0.65,
+    origin,
+    shapes: ['circle'],
+    colors: ['#9ccfc4', '#f6efe0', '#efc474'],
+    disableForReducedMotion: true
+  })
   b.classList.add('pop'); pops[Math.floor(Math.random() * 4)].cloneNode().play().catch(() => {}); navigator.vibrate?.(12)
-  const n = $('#note'); n.textContent = b.dataset.t; n.classList.add('on'); clearTimeout(nt); nt = setTimeout(() => n.classList.remove('on'), 3200)
   setTimeout(() => b.remove(), 300)
 })
 // scroll: reveals, water colour, age
@@ -102,7 +133,26 @@ const burst = () => { cv.width = innerWidth; cv.height = innerHeight
     bits = bits.filter(b => b.y < cv.height + 20); bits.length ? raf = requestAnimationFrame(tick) : cx.clearRect(0, 0, cv.width, cv.height) }; tick() }
 // candles
 const mb = new Audio(A('audio/musicbox_happy_birthday.mp3')), chime = new Audio(A('audio/chime_reveal.mp3')); let blown = false
-const done = (method = 'Hold') => { if (blown) return; blown = true; track.candles(method); document.querySelectorAll('.fl').forEach(x => { x.classList.remove('lean'); x.classList.add('out'); const w = document.createElement('b'); w.className = 'smoke'; w.style.left = x.style.left; $('.cake').append(w) }); burst(); mb.play().catch(() => {}); setVol(.12)
+const launchFireworks = () => {
+  if (still) return
+  const box = document.createElement('div')
+  box.style.cssText = 'position:fixed;inset:0;pointer-events:none;z-index:47'
+  document.body.appendChild(box)
+  const fw = new Fireworks(box, {
+    rocketsPoint: { min: 20, max: 80 },
+    particles: low ? 45 : 75,
+    explosion: 5,
+    intensity: 28,
+    traceLength: 3,
+    opacity: 0.35,
+    hue: { min: 0, max: 360 },
+    delay: { min: 25, max: 50 }
+  })
+  fw.start()
+  fw.launch(4)
+  setTimeout(() => fw.waitStop(true).then(() => box.remove()), 8500)
+}
+const done = (method = 'Hold') => { if (blown) return; blown = true; track.candles(method); document.querySelectorAll('.fl').forEach(x => { x.classList.remove('lean'); x.classList.add('out'); const w = document.createElement('b'); w.className = 'smoke'; w.style.left = x.style.left; $('.cake').append(w) }); burst(); launchFireworks(); mb.play().catch(() => {}); setVol(.12)
   $('#st').textContent = f.after; $('#ask').style.opacity = 0; $('#blow').style.display = $('#mic').style.display = 'none'
   setTimeout(() => { $('#bottle').classList.add('up'); chime.play().catch(() => {}) }, 2500) }
 let ht; const bl = $('#blow')
@@ -122,6 +172,35 @@ gsap.utils.toArray('.end p').forEach(el => gsap.from(el, { opacity: 0, y: 20, du
 const still = matchMedia('(prefers-reduced-motion: reduce)').matches
 sea(document.querySelector('.hero'), DUSK, { low, still }); sea(document.getElementById('surf'), DAWN, { low, still })
 
+// falling maple leaves over the "Happy 20, Subha." (#surf) and gift (#end) sections
+if (!still) {
+  const leafOpts = { shapes: ['maple'], count: low ? 18 : 28, size: [16, 30], speed: [0.6, 1.4], wind: [-0.4, 0.7], opacity: 0.9, autoStart: false }
+  const leafMap = new Map([
+    [$('#surf'), new FallingLeaves({ ...leafOpts, container: $('#surf'), zIndex: 3 })],
+    [$('#end'), new FallingLeaves({ ...leafOpts, container: $('#end'), zIndex: 2 })]
+  ])
+  const leafIO = new IntersectionObserver(es => es.forEach(e => {
+    const fx = leafMap.get(e.target)
+    if (fx) e.isIntersecting ? fx.start() : fx.stop()
+  }), { threshold: 0 })
+  leafMap.forEach((_, el) => el && leafIO.observe(el))
+
+  // sakura-js cherry blossom petals in the #izo tribute section
+  const Sakura = new Function(sakuraRaw + '; return Sakura;')()
+  const izoEl = $('#izo')
+  let sakuraFx = null
+  if (izoEl) {
+    new IntersectionObserver(es => {
+      if (es[0].isIntersecting) {
+        if (!sakuraFx) sakuraFx = new Sakura('#izo', { fallSpeed: 1.4, delay: low ? 550 : 380, maxSize: 16, minSize: 9, hideScrollbars: false })
+        else if (!izoEl.dataset.sakuraAnimId) sakuraFx.start()
+      } else if (sakuraFx) {
+        sakuraFx.stop(true)
+      }
+    }, { threshold: 0 }).observe(izoEl)
+  }
+}
+
 // bubbles drift up a little more as you scroll
 gsap.utils.toArray('.bub').forEach(b => gsap.to(b, { y: -240, ease: 'none', scrollTrigger: { trigger: b.parentElement, start: 'top bottom', end: 'bottom top', scrub: .6 } }))
 // ship stays on the horizon line
@@ -129,14 +208,3 @@ const hero = document.querySelector('.hero'), setHy = () => { const W = hero.cli
 new ResizeObserver(setHy).observe(hero); setHy()
 
 track.init()
-
-// log visit timestamp (on server via Apps Script) and device info
-const LOG_URL = 'https://script.google.com/macros/s/AKfycbw2TBh0Mm04lW0ji_93Cg5BAsH9lPDRWNQ2fQHOD3YWh_6piJf206gAG_r8mmz-ctZUPA/exec'
-const getDeviceLabel = () => {
-  const ua = navigator.userAgent || ''
-  const type = /iPad|Tablet/i.test(ua) ? 'Tablet' : /Mobi|Android|iPhone|iPod/i.test(ua) ? 'Mobile' : 'Desktop'
-  const os = /iPhone|iPad|iPod/i.test(ua) ? 'iOS' : /Android/i.test(ua) ? 'Android' : /Windows/i.test(ua) ? 'Windows' : /Mac OS/i.test(ua) ? 'macOS' : /Linux/i.test(ua) ? 'Linux' : 'Other OS'
-  const browser = /WhatsApp/i.test(ua) ? 'WhatsApp' : /Instagram/i.test(ua) ? 'Instagram' : /Edg/i.test(ua) ? 'Edge' : /Chrome|CriOS/i.test(ua) ? 'Chrome' : /Firefox|FxiOS/i.test(ua) ? 'Firefox' : /Safari/i.test(ua) ? 'Safari' : 'Browser'
-  return `${type} · ${os} · ${browser} (${screen.width}x${screen.height})`
-}
-fetch(LOG_URL, { method: 'POST', mode: 'no-cors', keepalive: true, body: JSON.stringify({ device: getDeviceLabel() }) }).catch(() => {})

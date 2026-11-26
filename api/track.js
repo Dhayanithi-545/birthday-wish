@@ -21,28 +21,19 @@ module.exports = async (req, res) => {
   const city = safeDecode(req.headers['x-vercel-ip-city'])
   const region = safeDecode(req.headers['x-vercel-ip-country-region'])
   const country = safeDecode(req.headers['x-vercel-ip-country'])
-  const location = [city, region, country].filter(Boolean).join(', ') || 'Unknown'
+  const location = [city, region, country].filter(Boolean).join(', ') || 'Unknown location'
 
-  const forwarded = req.headers['x-forwarded-for']
-  const ip = (typeof forwarded === 'string' ? forwarded.split(',')[0].trim() : '') ||
-    req.headers['x-real-ip'] ||
-    'Unknown'
-
-  const payload = {
-    ...data,
-    location,
-    ip,
-    ua: req.headers['user-agent'] || data.ua || ''
-  }
+  const payload = { ...data, location }
 
   try {
-    await fetch(APPS_SCRIPT_URL, {
+    const r = await fetch(APPS_SCRIPT_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify(payload)
+      body: JSON.stringify(payload),
+      redirect: 'follow'
     })
-    return res.status(200).json({ ok: true })
-  } catch (err) {
+    return res.status(200).json({ ok: r.ok })
+  } catch {
     return res.status(502).json({ error: 'Failed to forward to Google Sheet' })
   }
 }

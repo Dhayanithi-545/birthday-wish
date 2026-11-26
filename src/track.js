@@ -1,21 +1,46 @@
 const ENDPOINT = '/api/track'
 
 const SECTIONS = [
-  ['.descwrap', 'Descent'],
-  ['#school', 'School'],
-  ['#grow', 'Growing'],
-  ['#recent', 'Recent'],
-  ['#izo', 'Izo'],
-  ['#surf', 'Surface'],
-  ['#end', 'End']
+  ['.descwrap', '2/8 · Diving Down'],
+  ['#school', '3/8 · School Days'],
+  ['#grow', '4/8 · Growing Up'],
+  ['#recent', '5/8 · Recent Memories'],
+  ['#izo', '6/8 · Izo (Cat)'],
+  ['#surf', '7/8 · Birthday Cake'],
+  ['#end', '8/8 · Final Gift']
 ]
 
 const getDevice = () => {
   const ua = navigator.userAgent || ''
-  const type = /iPad|Tablet/i.test(ua) ? 'Tablet' : /Mobi|Android|iPhone|iPod/i.test(ua) ? 'Mobile' : 'Desktop'
-  const os = /iPhone|iPad|iPod/i.test(ua) ? 'iOS' : /Android/i.test(ua) ? 'Android' : /Windows/i.test(ua) ? 'Windows' : /Mac OS/i.test(ua) ? 'macOS' : /Linux/i.test(ua) ? 'Linux' : 'Other OS'
-  const browser = /WhatsApp/i.test(ua) ? 'WhatsApp' : /Instagram/i.test(ua) ? 'Instagram' : /Edg/i.test(ua) ? 'Edge' : /Chrome|CriOS/i.test(ua) ? 'Chrome' : /Firefox|FxiOS/i.test(ua) ? 'Firefox' : /Safari/i.test(ua) ? 'Safari' : 'Browser'
-  return `${type} · ${os} · ${browser} (${screen.width}x${screen.height})`
+  const kind = /iPhone/i.test(ua) ? 'iPhone'
+    : /iPad/i.test(ua) ? 'iPad'
+    : /Android/i.test(ua) ? (/Mobile/i.test(ua) ? 'Android Phone' : 'Android Tablet')
+    : /Mobi/i.test(ua) ? 'Mobile'
+    : 'Desktop'
+  const os = /iPhone|iPad|iPod/i.test(ua) ? 'iOS'
+    : /Android/i.test(ua) ? 'Android'
+    : /Windows/i.test(ua) ? 'Windows'
+    : /Mac OS/i.test(ua) ? 'macOS'
+    : /Linux/i.test(ua) ? 'Linux'
+    : 'Other OS'
+  const browser = /WhatsApp/i.test(ua) ? 'WhatsApp'
+    : /Instagram/i.test(ua) ? 'Instagram'
+    : /FBAN|FBAV/i.test(ua) ? 'Facebook'
+    : /Edg/i.test(ua) ? 'Edge'
+    : /Chrome|CriOS/i.test(ua) ? 'Chrome'
+    : /Firefox|FxiOS/i.test(ua) ? 'Firefox'
+    : /Safari/i.test(ua) ? 'Safari'
+    : 'Browser'
+  return `${kind} (${os} · ${browser})`
+}
+
+const ordinal = n => {
+  const mod100 = n % 100
+  if (mod100 >= 11 && mod100 <= 13) return `${n}th`
+  if (n % 10 === 1) return `${n}st`
+  if (n % 10 === 2) return `${n}nd`
+  if (n % 10 === 3) return `${n}rd`
+  return `${n}th`
 }
 
 const getVisitor = () => {
@@ -25,47 +50,66 @@ const getVisitor = () => {
     const id = parsed?.id || Math.random().toString(36).slice(2, 8)
     const count = (parsed?.count || 0) + 1
     localStorage.setItem('bw_visitor', JSON.stringify({ id, count }))
-    return `${count === 1 ? 'New' : 'Repeat'} (#${count}, ${id})`
+    return `${ordinal(count)} visit`
   } catch {
-    return 'Unknown'
+    return 'Visit'
   }
 }
 
 const getSource = () => {
   const params = new URLSearchParams(location.search)
   const tag = params.get('from') || params.get('ref') || params.get('for')
-  let ref = 'Direct'
+  let ref = ''
   if (document.referrer) {
-    try { ref = new URL(document.referrer).hostname } catch { ref = document.referrer }
+    try {
+      const host = new URL(document.referrer).hostname.replace(/^www\./, '')
+      if (/instagram/i.test(host)) ref = 'From Instagram'
+      else if (/whatsapp/i.test(host)) ref = 'From WhatsApp'
+      else if (/facebook/i.test(host)) ref = 'From Facebook'
+      else if (/t\.co|twitter|x\.com/i.test(host)) ref = 'From X / Twitter'
+      else ref = `From ${host}`
+    } catch {
+      ref = `From ${document.referrer}`
+    }
+  } else {
+    ref = 'Opened directly'
   }
   return tag ? `${ref} (${tag})` : ref
 }
 
 const formatDuration = ms => {
   const s = Math.max(0, Math.round(ms / 1000))
+  if (s < 5) return 'Just opened'
   return s < 60 ? `${s}s` : `${Math.floor(s / 60)}m ${s % 60}s`
 }
 
 const startedAt = Date.now()
 const visitId = `${startedAt.toString(36)}-${Math.random().toString(36).slice(2, 6)}`
 
-const state = {
-  visitId,
-  visitor: getVisitor(),
-  device: getDevice(),
-  env: `${innerWidth > innerHeight ? 'landscape' : 'portrait'} · ${navigator.connection?.effectiveType || 'unknown net'}`,
-  tz: `${Intl.DateTimeFormat().resolvedOptions().timeZone || 'Unknown'} (${new Date().toLocaleTimeString()})`,
-  source: getSource(),
-  timeSpent: '0s',
-  clickedDive: 'No',
-  deepestSection: 'Landing',
-  bubblesPopped: 0,
-  blewCandles: 'No',
-  openedBottle: 'No'
-}
-
+let bubbleCount = 0
+let candleMethod = ''
+let bottleRead = false
 let deepestIdx = -1
 let timer = null
+
+const state = {
+  visitId,
+  timeSpent: 'Just opened',
+  device: getDevice(),
+  visitor: getVisitor(),
+  openedFrom: getSource(),
+  diveStatus: 'Still on Cover',
+  section: '1/8 · Cover Page',
+  bubbles: 'None yet',
+  endingStatus: 'Not yet'
+}
+
+const updateEnding = () => {
+  if (candleMethod && bottleRead) state.endingStatus = `Blew candles (${candleMethod}) + Read letter`
+  else if (candleMethod) state.endingStatus = `Blew candles (${candleMethod})`
+  else if (bottleRead) state.endingStatus = 'Read bottle letter'
+  else state.endingStatus = 'Not yet'
+}
 
 const send = (useBeacon = false) => {
   state.timeSpent = formatDuration(Date.now() - startedAt)
@@ -97,13 +141,13 @@ export const track = {
         const idx = Number(entry.target.dataset.trackIdx)
         if (idx > deepestIdx) {
           deepestIdx = idx
-          state.deepestSection = SECTIONS[idx][1]
+          state.section = SECTIONS[idx][1]
           schedule()
         }
       })
     }, { threshold: 0.2 })
 
-    SECTIONS.forEach(([sel, _], idx) => {
+    SECTIONS.forEach(([sel], idx) => {
       const el = document.querySelector(sel)
       if (el) {
         el.dataset.trackIdx = String(idx)
@@ -117,22 +161,25 @@ export const track = {
     addEventListener('pagehide', () => send(true))
   },
   dive() {
-    if (state.clickedDive !== 'Yes') {
-      state.clickedDive = 'Yes'
+    if (state.diveStatus !== 'Clicked Dive') {
+      state.diveStatus = 'Clicked Dive'
       schedule()
     }
   },
   bubble() {
-    state.bubblesPopped += 1
+    bubbleCount += 1
+    state.bubbles = bubbleCount === 1 ? '1 bubble' : `${bubbleCount} bubbles`
     schedule()
   },
   candles(method = 'Hold') {
-    state.blewCandles = `Yes (${method})`
+    candleMethod = method
+    updateEnding()
     send(false)
   },
   bottle() {
-    if (state.openedBottle !== 'Yes') {
-      state.openedBottle = 'Yes'
+    if (!bottleRead) {
+      bottleRead = true
+      updateEnding()
       send(false)
     }
   }

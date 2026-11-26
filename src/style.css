@@ -10,8 +10,15 @@ img{display:block;max-width:100%}
 #water{position:fixed;inset:0;z-index:-1;background:linear-gradient(#2a8a92,#1d6370)}
 #grain{position:fixed;inset:0;pointer-events:none;z-index:50;opacity:.07;mix-blend-mode:overlay;
  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E")}
-#hud{position:fixed;top:max(14px,env(safe-area-inset-top));right:16px;z-index:40;text-align:right;font-family:Fraunces,serif;opacity:0;transition:opacity .6s}
-#hud.on{opacity:1}#age{font-size:44px;line-height:1;display:block}#ageLbl{font:700 16px Caveat}
+#hud{position:fixed;top:max(14px,env(safe-area-inset-top));right:16px;z-index:40;text-align:right;font-family:Fraunces,serif;opacity:0;pointer-events:none;transition:opacity .6s,transform .25s}
+#hud.on{opacity:1;pointer-events:auto;cursor:pointer}
+#hud.popping{animation:hudPop .65s cubic-bezier(.2,1.4,.4,1)}
+#age{font-size:44px;line-height:1;display:block}#ageLbl{font:700 16px Caveat}
+@keyframes hudPop{0%{transform:scale(1)}35%{transform:scale(1.22) rotate(-4deg)}70%{transform:scale(.94) rotate(2deg)}100%{transform:scale(1) rotate(0)}}
+.hud-tip{position:fixed;top:calc(max(14px,env(safe-area-inset-top)) + 68px);right:14px;z-index:41;pointer-events:none;
+ padding:4px 10px;border-radius:999px;background:rgba(10,34,44,.75);color:var(--gold);font:700 16px/1.1 Caveat;
+ opacity:0;transform:translateY(-6px);transition:opacity .35s,transform .35s}
+.hud-tip.on{opacity:1;transform:translateY(0)}
 section{position:relative;overflow:hidden}
 .hero{height:100svh;background:#1a1f33 url(./assets/scenery/sky_dusk.webp) center top/cover}
 .hero .txt{position:absolute;top:14svh;left:0;right:0;text-align:center;color:var(--paper);padding:0 20px}
@@ -38,7 +45,7 @@ section{position:relative;overflow:hidden}
 .pol img{width:100%;aspect-ratio:3/4;object-fit:cover}.pol b{position:absolute;bottom:4px;left:0;right:0;text-align:center;font:700 18px Caveat;color:var(--ink)}
 .pol .tp{position:absolute;top:-14px;left:50%;width:60px;transform:translateX(-50%)}
 .rig{position:relative;height:330px}.rig .pol:nth-child(1){left:3%;transform:rotate(-4deg)}.rig .pol:nth-child(2){right:3%;top:70px;transform:rotate(3deg)}
-.sandrow{position:absolute;left:0;right:0;bottom:0;height:62svh}
+.sandrow{position:absolute;left:0;right:0;bottom:0;height:44svh}
 .sandrow .sf{position:absolute;bottom:0;width:140%;left:-20%}.sandrow .sm{position:absolute;bottom:60px;width:130%;left:-10%;opacity:.9}
 .stand{position:absolute;bottom:34px;filter:brightness(.72) saturate(.85) hue-rotate(-8deg)}
 .prop{position:absolute}
@@ -57,12 +64,12 @@ section{position:relative;overflow:hidden}
 .descwrap .desc{position:relative}
 
 section h2{font:400 36px Fraunces,serif;text-align:center}.sub{text-align:center;font:700 22px Caveat}
-.grow,.recent{min-height:170svh;padding-top:14svh}.cap{text-align:center;font:700 20px Caveat;margin-top:6px}
+.grow,.recent{min-height:135svh;padding-top:8svh}.cap{text-align:center;font:700 20px Caveat;margin-top:6px}
 @keyframes swimx{to{left:120%}}
 .row{display:flex;gap:18px;overflow-x:auto;scroll-snap-type:x mandatory;padding:34px 18vw 20px;scrollbar-width:none}.row::-webkit-scrollbar{display:none}
 .row .pol{position:relative;top:0;width:64vw;max-width:260px;flex:none;scroll-snap-align:center}.row .pol:nth-child(odd){transform:rotate(-2deg)}.row .pol:nth-child(even){transform:rotate(2deg)}
 .hint{text-align:center;font:700 20px Caveat;opacity:.8}
-.floor{position:absolute;left:0;right:0;bottom:0;height:46svh}
+.floor{position:absolute;left:0;right:0;bottom:0;height:36svh}
 .rays{position:absolute;top:0;left:0;width:100%;opacity:.35;pointer-events:none;max-width:none}
 .rig2{position:relative;height:540px;margin-top:20px}.rig2 .pol{width:84%;left:8%;transform:rotate(-2deg)}
 .duo{display:flex;justify-content:center;gap:10px;margin-top:20px;padding:0 10px;filter:brightness(.9) saturate(.9)}.duo img{width:46%}
@@ -161,7 +168,7 @@ button{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-web
 /* seagull spans the seam between school days and growing up */
 .school,.grow{z-index:2}.seam{position:relative;height:0;z-index:1}
 .vbird{position:absolute;top:auto;bottom:-40px;left:0;inset:auto 0 -40px 0;width:100%;height:auto;aspect-ratio:9/16;object-fit:fill;opacity:.85;filter:none;-webkit-mask-image:linear-gradient(transparent,#000 6%);mask-image:linear-gradient(transparent,#000 6%)}
-.school{min-height:300svh}.rig{height:1060px}.rig .pol:nth-child(5){left:3%;top:820px;width:92%;transform:rotate(-1deg)}
+.school{min-height:0;padding-top:8svh;padding-bottom:34svh}.rig{height:1060px}.rig .pol:nth-child(5){left:3%;top:820px;width:92%;transform:rotate(-1deg)}
 /* memory bubbles rise like in the sea */
 .bub{animation:rise 20s ease-in-out infinite}.bub:nth-of-type(2){animation-delay:-7s}.bub:nth-of-type(3){animation-delay:-13s}
 @keyframes rise{0%{translate:0 0;opacity:0}8%{opacity:1}25%{translate:14px -30svh}50%{translate:-12px -60svh}75%{translate:12px -90svh}92%{opacity:1}100%{translate:0 -120svh;opacity:0}}
@@ -178,5 +185,5 @@ button{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-web
 .shipw::after{content:"";position:absolute;left:-4px;right:-4px;top:-2px;height:3px;border-radius:50%;background:rgba(255,248,230,.45);filter:blur(1px)}
 @keyframes rockS{0%,100%{transform:rotate(-1.4deg) translateY(0)}50%{transform:rotate(1.4deg) translateY(2px)}}
 /* seagull stands behind the sand; sand melts into the deep instead of a hard flat edge */
-.vbird{bottom:60px!important;inset:auto 0 60px 0!important}
+.vbird{bottom:10px!important;inset:auto 0 10px 0!important}
 .sandrow .sf,.sandrow .sm{-webkit-mask-image:linear-gradient(#000 78%,transparent);mask-image:linear-gradient(#000 78%,transparent)}

@@ -92,6 +92,7 @@ let bottleOpened = false
 let wrongCodeCount = 0
 let codeUnlocked = false
 let meetChoice = ''
+let tappedAge = false
 let deepestIdx = -1
 let timer = null
 
@@ -115,6 +116,7 @@ const updateEnding = () => {
     parts.push(wrongCodeCount > 0 ? `Bottle locked (${wrongCodeCount} wrong code)` : 'Opened bottle (Code locked)')
   }
   if (meetChoice) parts.push(`Meet: ${meetChoice}`)
+  if (tappedAge) parts.push('Tapped 20yrs!')
   state.endingStatus = parts.length ? parts.join(' · ') : 'Not yet'
 }
 
@@ -206,5 +208,12 @@ export const track = {
     meetChoice = meetChoice && !meetChoice.includes(choice) ? `${meetChoice} → ${choice}` : choice
     updateEnding()
     send(true)
+  },
+  ageTap() {
+    if (!tappedAge) {
+      tappedAge = true
+      updateEnding()
+      schedule()
+    }
   }
 }

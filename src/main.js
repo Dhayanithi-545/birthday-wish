@@ -2,6 +2,7 @@ import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { FallingLeaves } from 'falling-leaves'
 import confetti from 'canvas-confetti'
+import { confetti as partyConfetti, sparkles as partySparkles, range as partyRange } from 'party-js'
 import { Fireworks } from 'fireworks-js'
 import 'sakura-js/dist/sakura.min.css'
 import sakuraRaw from 'sakura-js/dist/sakura.js?raw'
@@ -63,7 +64,7 @@ $('#app').innerHTML = `
    <a class="meet-yes" id="meetYes" href="https://wa.me/919363986685?text=innaikku%20meet%20pannalam" target="_blank" rel="noopener">Yes</a>
    <button class="meet-no" id="meetNo" type="button">No</button>
   </div>
-  <div class="meet-plea" id="meetPlea">please meet panlamehhh... :(</div>
+  <div class="meet-plea" id="meetPlea">Gift mattum vangiktu poiduma, vera edhhuvum vena enakku, so please meet panlamehhh... :(</div>
  </div>
  <div class="end-unlocked" id="endUnlocked" hidden>
   <p>${e.l1}</p>
@@ -93,6 +94,8 @@ $('#dive').onclick = () => {
   track.dive()
   splash.play().catch(() => {}); amb.play().catch(() => {})
   document.body.classList.remove('locked'); $('#hud').classList.add('on')
+  setTimeout(() => hudTip.classList.add('on'), 600)
+  setTimeout(() => hudTip.classList.remove('on'), 2600)
 
   window.scrollTo({ top: innerHeight, behavior: 'smooth' })
 }
@@ -158,26 +161,40 @@ const burst = () => { cv.width = innerWidth; cv.height = innerHeight
     bits = bits.filter(b => b.y < cv.height + 20); bits.length ? raf = requestAnimationFrame(tick) : cx.clearRect(0, 0, cv.width, cv.height) }; tick() }
 // candles
 const mb = new Audio(A('audio/musicbox_happy_birthday.mp3')), chime = new Audio(A('audio/chime_reveal.mp3')); let blown = false
-const launchFireworks = () => {
+let activeFw = null, fwStopTimer = null
+const launchFireworks = (durationMs = 8500, rockets = 4) => {
   if (still) return
+  if (activeFw) {
+    activeFw.fw.launch(rockets)
+    clearTimeout(fwStopTimer)
+    fwStopTimer = setTimeout(() => {
+      const cur = activeFw; activeFw = null
+      cur?.fw.waitStop(true).then(() => cur.box.remove())
+    }, durationMs)
+    return
+  }
   const box = document.createElement('div')
   box.style.cssText = 'position:fixed;inset:0;pointer-events:none;z-index:47'
   document.body.appendChild(box)
   const fw = new Fireworks(box, {
-    rocketsPoint: { min: 20, max: 80 },
-    particles: low ? 45 : 75,
+    rocketsPoint: { min: 15, max: 85 },
+    particles: low ? 50 : 85,
     explosion: 5,
-    intensity: 28,
+    intensity: 34,
     traceLength: 3,
     opacity: 0.35,
     hue: { min: 0, max: 360 },
-    delay: { min: 25, max: 50 }
+    delay: { min: 20, max: 45 }
   })
+  activeFw = { fw, box }
   fw.start()
-  fw.launch(4)
-  setTimeout(() => fw.waitStop(true).then(() => box.remove()), 8500)
+  fw.launch(rockets)
+  fwStopTimer = setTimeout(() => {
+    const cur = activeFw; activeFw = null
+    cur?.fw.waitStop(true).then(() => cur.box.remove())
+  }, durationMs)
 }
-const done = (method = 'Hold') => { if (blown) return; blown = true; track.candles(method); document.querySelectorAll('.fl').forEach(x => { x.classList.remove('lean'); x.classList.add('out'); const w = document.createElement('b'); w.className = 'smoke'; w.style.left = x.style.left; $('.cake').append(w) }); burst(); launchFireworks(); mb.play().catch(() => {}); setVol(.12)
+const done = (method = 'Hold') => { if (blown) return; blown = true; track.candles(method); document.querySelectorAll('.fl').forEach(x => { x.classList.remove('lean'); x.classList.add('out'); const w = document.createElement('b'); w.className = 'smoke'; w.style.left = x.style.left; $('.cake').append(w) }); burst(); launchFireworks(8500, 4); mb.play().catch(() => {}); setVol(.12)
   $('#st').textContent = f.after; $('#ask').style.opacity = 0; $('#blow').style.display = $('#mic').style.display = 'none'
   setTimeout(() => { $('#bottle').classList.add('up'); chime.play().catch(() => {}) }, 2500) }
 let ht; const bl = $('#blow')
@@ -344,5 +361,42 @@ gsap.utils.toArray('.bub').forEach(b => gsap.to(b, { y: -240, ease: 'none', scro
 // ship stays on the horizon line
 const hero = document.querySelector('.hero'), setHy = () => { const W = hero.clientWidth, H = hero.offsetHeight; hero.style.setProperty('--hy', Math.round(.639 * 1000 * Math.max(W / 1200, H / 1000)) + 'px') }
 new ResizeObserver(setHy).observe(hero); setHy()
+
+// top-right "20 years" celebration crackers + fireworks + sparkles for ~4.5s
+const hud = $('#hud')
+const partyShapes = ['🎉', '✨', '🎆', '⭐'].map(text => confetti.shapeFromText({ text, scalar: 2 }))
+const hudTip = document.createElement('div')
+hudTip.className = 'hud-tip'
+hudTip.textContent = 'click here ↑'
+document.body.appendChild(hudTip)
+let hudTimers = []
+hud.onclick = () => {
+  if (!hud.classList.contains('on')) return
+  track.ageTap()
+  hudTip.classList.remove('on')
+  hudTimers.forEach(clearTimeout); hudTimers = []
+  hud.classList.remove('popping'); void hud.offsetWidth; hud.classList.add('popping')
+  chime.cloneNode().play().catch(() => {})
+  navigator.vibrate?.([15, 25, 20])
+
+  if (!still) {
+    partySparkles(hud, { count: partyRange(24, 38), size: 26, startVelocity: partyRange(260, 520), colors: ['#fff6cf', '#efc474', '#ec9a78', '#9ccfc4', '#ffb7c5'] })
+    partyConfetti(hud, { count: partyRange(42, 65), spread: 95, angle: 225, startVelocity: partyRange(650, 1250), colors: ['#efc474', '#d9694f', '#9ccfc4', '#ffb7c5', '#f6efe0'] })
+    launchFireworks(4500, 5)
+
+    const hr = hud.getBoundingClientRect()
+    const hudOrigin = { x: (hr.left + hr.width / 2) / innerWidth, y: (hr.top + hr.height / 2) / innerHeight }
+    const waves = [
+      [0, { particleCount: low ? 20 : 35, angle: 220, spread: 85, startVelocity: 42, origin: hudOrigin, shapes: [...partyShapes, 'star'], scalar: 1.5, zIndex: 49 }],
+      [600, { particleCount: low ? 18 : 28, angle: 60, spread: 60, startVelocity: 48, origin: { x: 0.05, y: 0.85 }, shapes: ['star', 'circle'], colors: ['#efc474', '#d9694f', '#9ccfc4', '#ffb7c5'], zIndex: 49 }],
+      [1200, { particleCount: low ? 18 : 28, angle: 120, spread: 60, startVelocity: 48, origin: { x: 0.95, y: 0.85 }, shapes: ['star', 'circle'], colors: ['#efc474', '#ec9a78', '#f6efe0', '#2b8a90'], zIndex: 49 }],
+      [2000, { particleCount: low ? 16 : 26, spread: 120, startVelocity: 36, origin: { x: 0.5, y: 0.35 }, shapes: [...partyShapes, 'star'], scalar: 1.4, zIndex: 49 }],
+      [2900, { particleCount: low ? 16 : 26, angle: 225, spread: 90, startVelocity: 40, origin: hudOrigin, colors: ['#fff6cf', '#efc474', '#ec9a78', '#9ccfc4'], zIndex: 49 }]
+    ]
+    waves.forEach(([ms, opts]) => hudTimers.push(setTimeout(() => confetti({ ...opts, disableForReducedMotion: true }), ms)))
+  }
+
+  hudTimers.push(setTimeout(() => hud.classList.remove('popping'), 900))
+}
 
 track.init()

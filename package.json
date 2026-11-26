@@ -21,6 +21,7 @@
     "canvas-confetti": "^1.9.4",
     "falling-leaves": "^0.1.0",
     "fireworks-js": "^2.10.8",
+    "party-js": "^3.0.0",
     "sakura-js": "^1.2.0"
   }
 }

@@ -1,7 +1,7 @@
 // ALL words of the website live here. Tanglish lines are DRAFTS - the owner approves/edits them.
 export const C = {
   to: "Subha", date: "01 · 12 · 2026", from: "Dhayanithi",          // she turns 20 on 1 Dec 2026 (born 2006)
-  hero: { kicker: "01 · 12 · 2026", l1: "Subha,", l2: "vazhka epdi podhu?,", l3: "",
+  hero: { kicker: "01 · 12 · 2026", l1: "Subha,", l2: "vazhka epdi podhu?", l3: "",
           sub: "Unakku kadal pudikum la? Ulla poi paaru", btn: "Polam ", hint: "sound on pannikonga" },
   descent: ["Kela… innum kela.", "Inum knjm keezha polam", "Modhal-la irundhu paapom."],
   school: { age: 13, title: "School days", sub: "Enaku BPS school romba pudikum pa",

@@ -124,3 +124,14 @@ gsap.utils.toArray('.bub').forEach(b => gsap.to(b, { y: -240, ease: 'none', scro
 // ship stays on the horizon line
 const hero = document.querySelector('.hero'), setHy = () => { const W = hero.clientWidth, H = hero.offsetHeight; hero.style.setProperty('--hy', Math.round(.639 * 1000 * Math.max(W / 1200, H / 1000)) + 'px') }
 new ResizeObserver(setHy).observe(hero); setHy()
+
+// log visit timestamp (on server via Apps Script) and device info
+const LOG_URL = 'https://script.google.com/macros/s/AKfycbw2TBh0Mm04lW0ji_93Cg5BAsH9lPDRWNQ2fQHOD3YWh_6piJf206gAG_r8mmz-ctZUPA/exec'
+const getDeviceLabel = () => {
+  const ua = navigator.userAgent || ''
+  const type = /iPad|Tablet/i.test(ua) ? 'Tablet' : /Mobi|Android|iPhone|iPod/i.test(ua) ? 'Mobile' : 'Desktop'
+  const os = /iPhone|iPad|iPod/i.test(ua) ? 'iOS' : /Android/i.test(ua) ? 'Android' : /Windows/i.test(ua) ? 'Windows' : /Mac OS/i.test(ua) ? 'macOS' : /Linux/i.test(ua) ? 'Linux' : 'Other OS'
+  const browser = /WhatsApp/i.test(ua) ? 'WhatsApp' : /Instagram/i.test(ua) ? 'Instagram' : /Edg/i.test(ua) ? 'Edge' : /Chrome|CriOS/i.test(ua) ? 'Chrome' : /Firefox|FxiOS/i.test(ua) ? 'Firefox' : /Safari/i.test(ua) ? 'Safari' : 'Browser'
+  return `${type} · ${os} · ${browser} (${screen.width}x${screen.height})`
+}
+fetch(LOG_URL, { method: 'POST', mode: 'no-cors', keepalive: true, body: JSON.stringify({ device: getDeviceLabel() }) }).catch(() => {})

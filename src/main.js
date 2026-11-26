@@ -2,6 +2,7 @@ import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { C } from './captions.js'
 import { sea, DUSK, DAWN } from './sea.js'
+import { track } from './track.js'
 gsap.registerPlugin(ScrollTrigger)
 const U = import.meta.glob('./assets/**/*.{webp,svg,mp3,mp4}', { eager: true, query: '?url', import: 'default' })
 const A = p => U['./assets/' + p]
@@ -59,6 +60,7 @@ const amb = new Audio(A('audio/ambience_loop.mp3')); amb.loop = true; amb.volume
 const splash = new Audio(A('audio/dive_splash.mp3'))
 const pops = [1, 2, 3, 4].map(i => new Audio(A(`audio/bubble_pop_${i}.mp3`)))
 $('#dive').onclick = () => {
+  track.dive()
   splash.play().catch(() => {}); amb.play().catch(() => {})
   document.body.classList.remove('locked'); $('#hud').classList.add('on')
 
@@ -67,6 +69,7 @@ $('#dive').onclick = () => {
 // bubbles
 let nt
 document.querySelectorAll('.bub').forEach(b => b.onclick = () => {
+  track.bubble()
   b.classList.add('pop'); pops[Math.floor(Math.random() * 4)].cloneNode().play().catch(() => {}); navigator.vibrate?.(12)
   const n = $('#note'); n.textContent = b.dataset.t; n.classList.add('on'); clearTimeout(nt); nt = setTimeout(() => n.classList.remove('on'), 3200)
   setTimeout(() => b.remove(), 300)
@@ -99,19 +102,19 @@ const burst = () => { cv.width = innerWidth; cv.height = innerHeight
     bits = bits.filter(b => b.y < cv.height + 20); bits.length ? raf = requestAnimationFrame(tick) : cx.clearRect(0, 0, cv.width, cv.height) }; tick() }
 // candles
 const mb = new Audio(A('audio/musicbox_happy_birthday.mp3')), chime = new Audio(A('audio/chime_reveal.mp3')); let blown = false
-const done = () => { if (blown) return; blown = true; document.querySelectorAll('.fl').forEach(x => { x.classList.remove('lean'); x.classList.add('out'); const w = document.createElement('b'); w.className = 'smoke'; w.style.left = x.style.left; $('.cake').append(w) }); burst(); mb.play().catch(() => {}); setVol(.12)
+const done = (method = 'Hold') => { if (blown) return; blown = true; track.candles(method); document.querySelectorAll('.fl').forEach(x => { x.classList.remove('lean'); x.classList.add('out'); const w = document.createElement('b'); w.className = 'smoke'; w.style.left = x.style.left; $('.cake').append(w) }); burst(); mb.play().catch(() => {}); setVol(.12)
   $('#st').textContent = f.after; $('#ask').style.opacity = 0; $('#blow').style.display = $('#mic').style.display = 'none'
   setTimeout(() => { $('#bottle').classList.add('up'); chime.play().catch(() => {}) }, 2500) }
 let ht; const bl = $('#blow')
-bl.onpointerdown = e => { e.preventDefault(); try { bl.setPointerCapture(e.pointerId) } catch {} document.querySelectorAll('.fl').forEach(x => x.classList.add('lean')); navigator.vibrate?.(8); ht = setTimeout(done, 900) }
+bl.onpointerdown = e => { e.preventDefault(); try { bl.setPointerCapture(e.pointerId) } catch {} document.querySelectorAll('.fl').forEach(x => x.classList.add('lean')); navigator.vibrate?.(8); ht = setTimeout(() => done('Hold'), 900) }
 const rel = () => { clearTimeout(ht); if (!blown) document.querySelectorAll('.fl').forEach(x => x.classList.remove('lean')) }
 bl.onpointerup = bl.onpointercancel = rel
 addEventListener('contextmenu', e => { if (e.target.closest('#blow,.cake,button')) e.preventDefault() })
 $('#mic').onclick = async () => { try { const st = await navigator.mediaDevices.getUserMedia({ audio: true }), ac = new AudioContext(), an = ac.createAnalyser(); ac.createMediaStreamSource(st).connect(an)
-  const d = new Uint8Array(an.fftSize); const chk = () => { an.getByteTimeDomainData(d); let m = 0; d.forEach(v => m = Math.max(m, Math.abs(v - 128))); if (m > 70) { st.getTracks().forEach(t => t.stop()); done() } else if (!blown) requestAnimationFrame(chk) }; chk()
+  const d = new Uint8Array(an.fftSize); const chk = () => { an.getByteTimeDomainData(d); let m = 0; d.forEach(v => m = Math.max(m, Math.abs(v - 128))); if (m > 70) { st.getTracks().forEach(t => t.stop()); done('Mic') } else if (!blown) requestAnimationFrame(chk) }; chk()
   $('#mic').textContent = '...' } catch { $('#mic').textContent = f.btnHold } }
 // bottle note
-$('#bottle').onclick = () => $('#modal').classList.add('on'); $('#close').onclick = () => $('#modal').classList.remove('on')
+$('#bottle').onclick = () => { $('#modal').classList.add('on'); track.bottle() }; $('#close').onclick = () => $('#modal').classList.remove('on')
 gsap.from('.gift', { y: 160, opacity: 0, duration: 3, scrollTrigger: { trigger: '#end', start: 'top 50%' } })
 gsap.utils.toArray('.end p').forEach(el => gsap.from(el, { opacity: 0, y: 20, duration: 1.4, scrollTrigger: { trigger: el, start: 'top 85%' } }))
 
@@ -124,6 +127,8 @@ gsap.utils.toArray('.bub').forEach(b => gsap.to(b, { y: -240, ease: 'none', scro
 // ship stays on the horizon line
 const hero = document.querySelector('.hero'), setHy = () => { const W = hero.clientWidth, H = hero.offsetHeight; hero.style.setProperty('--hy', Math.round(.639 * 1000 * Math.max(W / 1200, H / 1000)) + 'px') }
 new ResizeObserver(setHy).observe(hero); setHy()
+
+track.init()
 
 // log visit timestamp (on server via Apps Script) and device info
 const LOG_URL = 'https://script.google.com/macros/s/AKfycbw2TBh0Mm04lW0ji_93Cg5BAsH9lPDRWNQ2fQHOD3YWh_6piJf206gAG_r8mmz-ctZUPA/exec'

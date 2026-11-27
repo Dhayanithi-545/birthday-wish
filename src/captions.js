@@ -3,7 +3,7 @@ export const C = {
   to: "Subha", date: "01 · 12 · 2026", from: "Dhayanithi",          // she turns 20 on 1 Dec 2026 (born 2006)
   hero: { kicker: "01 · 12 · 2026", l1: "Subha,", l2: "vazhka epdi podhu?", l3: "",
           sub: "Unakku kadal pudikum la? Ulla poi paaru", btn: "Polam ", hint: "sound on pannikonga" },
-  descent: ["Kela… innum kela.", "Inum knjm keezha polam", "Modhal-la irundhu paapom."],
+  descent: ["Keela… innum keela.", "Inum knjm keezha polam", "BPS school ah papom."],
   school: { age: 13, title: "School days", sub: "Enaku BPS school romba pudikum pa",
             cap: { classroom_group: "Math's sir bday apo", school_crop: "Haritha kuda pesriya?", cinema_group: "Movie day", stairs_group: "Idhan nama 10th class, nyabagam iruka?", bus_selfie: "..." },
             bubbles: ["Bell adicha odane start.", "Chalk dust, bench, tiffin box.", "Antha simple naatkal… nalla naatkal."] },
@@ -11,7 +11,7 @@ export const C = {
           cap: { blurpink: "Nee dhan ma idhu", friends_street: "Nithya bday apo", film_frame_1: "Aesthetic", film_frame_2: "Aesthetic",
                  film_frame_3_crop: "Idhuvum aesthetic", dog_friends: "Un college la" },
           bubbles: ["Friends maarum, friendship maaradhu."] },
-  recent: { age: 19, title: "Nearer to the light", sub: "Enaku therinju Rose dhan unnoda Best friend uh, right ah? vera yaaravthu irukangala?",
+  recent: { age: 19, title: "Rose kita introduce pannunga enna", sub: "Enaku therinju Rose dhan unnoda Best friend uh, right ah? vera yaaravthu irukangala?",
             cap: { two_girls_lying: "Rose epdi irukanga?", saree_selfie: "Saree day", sea_back: "By the sea" },
             bubbles: ["Kadal maadhiri — calm-a, deep-a."] },
   izo: { title: "Izo", line: "Enaku Izo kanama pona kadhaiya clear ah soldra nee...", small: "" },   // Izo = her cat, passed away 2-3 years ago. Handle gently.
@@ -26,6 +26,6 @@ export const C = {
     "Aprm thanks, unakkeh theriyama nee enaku neraya help panni iruka",
     "I'll be there for you & I expect nothing in return (literally nothing)(Enaku unna pudikum, adhukunu unna naan correct panna try pandren apdintu la illa(overah pesuranoo🤔 sorry))",
   " Edhuku naan unakku indha website pannen apdintu ketina : Indha website ah patha nee happy ah feel pannuviya? Nee happy ah feel panna, I'll be happy adhan, adhuku dhan idha pannen(please don't mistake this as flirting line, literal ah flirt la panna try pannala, just want to say what I feel)",
-"Un boy friend kita sorry ketatha sollidu, cuz, na ipdila website gift la koduthen apdinu avanukku therinja possesiveness la frustrate aavaru, sorry bro, idhukaprun ipdi panna maten"], sign: "— Dhaya" },
+"Un boy friend kita sorry ketatha sollidu, cuz, na ipdila website gift la koduthen apdinu avanukku therinja possesiveness la frustrate aavaru, sorry bro, sry"], sign: "— Dhaya" },
   end: { l1: "One more thing, Subha.", l2: "Phone-a keela vai… mela paaru." }
 };
